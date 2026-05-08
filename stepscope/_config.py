@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 class StepScopeConfig:
     session_id: str
     buffer: "SqliteBuffer"
+    store_responses: bool = False
+    store_tool_io: bool = False
 
 
 class _ConfigHolder:
@@ -40,6 +42,8 @@ def init(
     api_key: Optional[str] = None,
     local: bool = False,
     db_path: str = "./stepscope.db",
+    store_responses: bool = False,
+    store_tool_io: bool = False,
 ) -> None:
     import atexit
 
@@ -58,5 +62,7 @@ def init(
         _CONFIG._instance = StepScopeConfig(
             session_id=str(uuid.uuid4()),
             buffer=buf,
+            store_responses=store_responses,
+            store_tool_io=store_tool_io,
         )
         atexit.register(buf.flush)

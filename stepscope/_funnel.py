@@ -53,3 +53,42 @@ def render_funnel(db_path: str, *, since: str = "24h") -> str:
         bar = "█" * filled
         lines.append(f"{name:<22} {bar:<{bar_width}}  {n} ({pct}%)")
     return "\n".join(lines)
+
+
+def render_loops(db_path: str, *, since: str = "24h", threshold: int = 3) -> str:
+    """Sessions where the same step.name fires >= threshold times."""
+    since_epoch = _since_to_epoch(since)
+    conn = sqlite3.connect(db_path)
+    try:
+        if since_epoch is not None:
+            rows = conn.execute(
+                """SELECT session_id, name, COUNT(*) AS fires
+                   FROM step WHERE started_at >= ?
+                   GROUP BY session_id, name
+                   HAVING COUNT(*) >= ?
+                   ORDER BY fires DESC""",
+                (since_epoch, threshold),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """SELECT session_id, name, COUNT(*) AS fires
+                   FROM step
+                   GROUP BY session_id, name
+                   HAVING COUNT(*) >= ?
+                   ORDER BY fires DESC""",
+                (threshold,),
+            ).fetchall()
+    finally:
+        conn.close()
+
+    if not rows:
+        return f"No loops detected (threshold={threshold}, since={since})"
+
+    lines = [
+        f"Loop detector (>={threshold} fires, last {since})",
+        "─" * 52,
+        f"{'session_id':<38} {'step':<20} fires",
+    ]
+    for session_id, name, fires in rows:
+        lines.append(f"{session_id:<38} {name:<20} {fires}")
+    return "\n".join(lines)

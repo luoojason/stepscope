@@ -44,12 +44,28 @@ stepscope shows you **aggregate funnels** — where conversations drop off acros
 
 Think Mixpanel for agent conversations, not a trace viewer.
 
+## LangGraph (1 config line)
+
+```python
+from stepscope.langchain import StepScopeCallback
+import stepscope
+
+stepscope.init(local=True)
+graph.invoke(inputs, config={"callbacks": [StepScopeCallback()]})
+```
+
+```bash
+stepscope funnel ./stepscope.db --since all   # where do sessions drop off?
+stepscope loops  ./stepscope.db --since all   # which sessions are stuck in a loop?
+```
+
 ## Status
 
 - [x] `stepscope.init(local=True)` + SQLite local mode
 - [x] `with stepscope.step("name"):` context manager
 - [x] `stepscope funnel <db>` ASCII funnel CLI
-- [ ] LangChain / LangGraph callback (`AgentLensCallback`) — W2
+- [x] `stepscope loops <db>` loop detector
+- [x] `StepScopeCallback` for LangChain / LangGraph (1 config line)
 - [ ] Hosted dashboard — W8 beta
 - [ ] Public hosted launch — W12
 
